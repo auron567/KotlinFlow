@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/filter_prequels"
+        android:title="@string/prequels"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/filter_original"
+        android:title="@string/original"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/filter_sequels"
+        android:title="@string/sequels"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/filter_spinoffs"
+        android:title="@string/spinoffs"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/filter_all"
+        android:title="@string/all"
+        app:showAsAction="never" />
+</menu>

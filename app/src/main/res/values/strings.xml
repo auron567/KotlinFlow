@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Episodes</string>
+    <string name="content_description_episode_image">Episode image</string>
+
+    <!-- Menu filters -->
+    <string name="prequels">Prequels</string>
+    <string name="original">Original</string>
+    <string name="sequels">Sequels</string>
+    <string name="spinoffs">Spin-offs</string>
+    <string name="all">All</string>
+</resources>

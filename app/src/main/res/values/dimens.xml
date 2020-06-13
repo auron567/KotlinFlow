@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="dp_16">16dp</dimen>
+
+    <dimen name="episode_image_height">255dp</dimen>
+    <dimen name="episode_name_text_size">12sp</dimen>
+
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_side_margin">12dp</dimen>
+    <dimen name="card_bottom_margin">24dp</dimen>
+    <dimen name="header_margin">24dp</dimen>
+</resources>

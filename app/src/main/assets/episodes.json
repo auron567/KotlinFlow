@@ -1,0 +1,90 @@
+[
+  {
+    "episodeId": "tpm",
+    "name": "The Phantom Menace",
+    "director": "George Lucas",
+    "number": 1,
+    "posterPath": "https://image.tmdb.org/t/p/w500/6wkfovpn7Eq8dYNKaG5PY3q2oq6.jpg",
+    "trilogyNumber": 1
+  },
+  {
+    "episodeId": "aotc",
+    "name": "Attack of the Clones",
+    "director": "George Lucas",
+    "number": 2,
+    "posterPath": "https://image.tmdb.org/t/p/w500/oZNPzxqM2s5DyVWab09NTQScDQt.jpg",
+    "trilogyNumber": 1
+  },
+  {
+    "episodeId": "rots",
+    "name": "Revenge of the Sith",
+    "director": "George Lucas",
+    "number": 3,
+    "posterPath": "https://image.tmdb.org/t/p/w500/xfSAoBEm9MNBjmlNcDYLvLSMlnq.jpg",
+    "trilogyNumber": 1
+  },
+  {
+    "episodeId": "anh",
+    "name": "A New Hope",
+    "director": "George Lucas",
+    "number": 4,
+    "posterPath": "https://image.tmdb.org/t/p/w500/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
+    "trilogyNumber": 2
+  },
+  {
+    "episodeId": "tesb",
+    "name": "The Empire Strikes Back",
+    "director": "Irvin Kershner",
+    "number": 5,
+    "posterPath": "https://image.tmdb.org/t/p/w500/7BuH8itoSrLExs2YZSsM01Qk2no.jpg",
+    "trilogyNumber": 2
+  },
+  {
+    "episodeId": "rotj",
+    "name": "Return of the Jedi",
+    "director": "Richard Marquand",
+    "number": 6,
+    "posterPath": "https://image.tmdb.org/t/p/w500/mDCBQNhR6R0PVFucJl0O4Hp5klZ.jpg",
+    "trilogyNumber": 2
+  },
+  {
+    "episodeId": "tfa",
+    "name": "The Force Awakens",
+    "director": "J.J. Abrams",
+    "number": 7,
+    "posterPath": "https://image.tmdb.org/t/p/w500/9rd002JS49RwDW944fF1wjU8iTV.jpg",
+    "trilogyNumber": 3
+  },
+  {
+    "episodeId": "tlj",
+    "name": "The Last Jedi",
+    "director": "Rian Johnson",
+    "number": 8,
+    "posterPath": "https://image.tmdb.org/t/p/w500/kOVEVeg59E0wsnXmF9nrh6OmWII.jpg",
+    "trilogyNumber": 3
+  },
+  {
+    "episodeId": "tros",
+    "name": "The Rise of Skywalker",
+    "director": "J.J. Abrams",
+    "number": 9,
+    "posterPath": "https://image.tmdb.org/t/p/w500/db32LaOibwEliAmSL2jjDF6oDdj.jpg",
+    "trilogyNumber": 3
+  },
+  {
+    "episodeId": "ro",
+    "name": "Rogue One",
+    "director": "Gareth Edwards",
+    "number": 10,
+    "posterPath": "https://image.tmdb.org/t/p/w500/5jX3p0apUG5bkMHtnKZch0xpkBS.jpg",
+    "trilogyNumber": 4
+  },
+  {
+    "episodeId": "s",
+    "name": "Solo",
+    "director": "Ron Howard",
+    "number": 11,
+    "posterPath": "https://image.tmdb.org/t/p/w500/4oD6VEccFkorEBTEDXtpLAaz0Rl.jpg",
+    "trilogyNumber": 4
+  }
+]
