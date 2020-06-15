@@ -1,6 +1,9 @@
 package com.example.kotlinflow.repository
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.liveData
+import androidx.lifecycle.map
+import com.example.kotlinflow.app.ComparablePair
 import com.example.kotlinflow.data.database.EpisodeDao
 import com.example.kotlinflow.data.model.Episode
 import com.example.kotlinflow.data.model.Trilogy
@@ -21,19 +24,48 @@ class EpisodeRepository(
 ) {
 
     /**
-     * Fetch a list of [Episode]s from the database.
+     * Fetch a list of [Episode]s from the database and apply a custom sort order to the list.
      *
      * Returns a LiveData-wrapped List of Episodes.
      */
-    val episodes: LiveData<List<Episode>> = episodeDao.getEpisodes()
+    val episodes: LiveData<List<Episode>> = liveData {
+        // Observe episodes from the database
+        val episodesLiveData = episodeDao.getEpisodes()
+
+        // Fetch our custom sort from the network in a main-safe suspending call
+        val customSortOrder = try {
+            remoteDataSource.customEpisodeSortOrder()
+        } catch (error: Throwable) {
+            listOf<String>()
+        }
+
+        // Map the LiveData, applying the sort criteria
+        emitSource(episodesLiveData.map { episodeList ->
+            episodeList.applySort(customSortOrder)
+        })
+    }
 
     /**
-     * Fetch a list of [Episode]s from the database that matches a given [Trilogy].
+     * Fetch a list of [Episode]s from the database that matches a given [Trilogy] and apply a
+     * custom sort order to the list.
      *
      * Returns a LiveData-wrapped List of Episodes.
      */
-    fun getEpisodesWithTrilogy(trilogy: Trilogy): LiveData<List<Episode>> {
-        return episodeDao.getEpisodesWithTrilogyNumber(trilogy.number)
+    fun getEpisodesWithTrilogy(trilogy: Trilogy): LiveData<List<Episode>> = liveData {
+        // Observe episodes from the database
+        val episodesTrilogyLiveData = episodeDao.getEpisodesWithTrilogyNumber(trilogy.number)
+
+        // Fetch our custom sort from the network in a main-safe suspending call
+        val customSortOrder = try {
+            remoteDataSource.customEpisodeSortOrder()
+        } catch (error: Throwable) {
+            listOf<String>()
+        }
+
+        // Map the LiveData, applying the sort criteria
+        emitSource(episodesTrilogyLiveData.map { episodeList ->
+            episodeList.applySort(customSortOrder)
+        })
     }
 
     /**
@@ -77,5 +109,17 @@ class EpisodeRepository(
     private suspend fun fetchEpisodesForTrilogy(trilogy: Trilogy) {
         val episodes = remoteDataSource.episodesByTrilogy(trilogy)
         episodeDao.insertAll(episodes)
+    }
+
+    /**
+     * A function that sorts the list of episodes in a given custom order.
+     */
+    private fun List<Episode>.applySort(customSortOrder: List<String>): List<Episode> {
+        return sortedBy { episode ->
+            val positionForItem = customSortOrder.indexOf(episode.episodeId).let { index ->
+                if (index > -1) index else Int.MAX_VALUE
+            }
+            ComparablePair(positionForItem, episode.number)
+        }
     }
 }
