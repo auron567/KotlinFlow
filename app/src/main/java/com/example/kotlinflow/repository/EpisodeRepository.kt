@@ -3,11 +3,13 @@ package com.example.kotlinflow.repository
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
+import com.example.kotlinflow.app.CacheOnSuccess
 import com.example.kotlinflow.app.ComparablePair
 import com.example.kotlinflow.data.database.EpisodeDao
 import com.example.kotlinflow.data.model.Episode
 import com.example.kotlinflow.data.model.Trilogy
 import com.example.kotlinflow.data.network.EpisodeRemoteDataSource
+import timber.log.Timber
 
 /**
  * Repository module for handling data operations.
@@ -24,6 +26,15 @@ class EpisodeRepository(
 ) {
 
     /**
+     * Cache for storing the custom sort order.
+     */
+    private var episodesListSortOrderCache =
+        CacheOnSuccess(onErrorFallback = { listOf<String>() }) {
+            Timber.d("fetch custom sort order")
+            remoteDataSource.customEpisodeSortOrder()
+        }
+
+    /**
      * Fetch a list of [Episode]s from the database and apply a custom sort order to the list.
      *
      * Returns a LiveData-wrapped List of Episodes.
@@ -32,12 +43,8 @@ class EpisodeRepository(
         // Observe episodes from the database
         val episodesLiveData = episodeDao.getEpisodes()
 
-        // Fetch our custom sort from the network in a main-safe suspending call
-        val customSortOrder = try {
-            remoteDataSource.customEpisodeSortOrder()
-        } catch (error: Throwable) {
-            listOf<String>()
-        }
+        // Fetch our custom sort from the network in a main-safe suspending call (cached)
+        val customSortOrder = episodesListSortOrderCache.getOrAwait()
 
         // Map the LiveData, applying the sort criteria
         emitSource(episodesLiveData.map { episodeList ->
@@ -55,12 +62,8 @@ class EpisodeRepository(
         // Observe episodes from the database
         val episodesTrilogyLiveData = episodeDao.getEpisodesWithTrilogyNumber(trilogy.number)
 
-        // Fetch our custom sort from the network in a main-safe suspending call
-        val customSortOrder = try {
-            remoteDataSource.customEpisodeSortOrder()
-        } catch (error: Throwable) {
-            listOf<String>()
-        }
+        // Fetch our custom sort from the network in a main-safe suspending call (cached)
+        val customSortOrder = episodesListSortOrderCache.getOrAwait()
 
         // Map the LiveData, applying the sort criteria
         emitSource(episodesTrilogyLiveData.map { episodeList ->
