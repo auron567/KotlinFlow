@@ -1,14 +1,19 @@
 package com.example.kotlinflow.repository
 
+import androidx.annotation.AnyThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
+import androidx.lifecycle.switchMap
 import com.example.kotlinflow.app.CacheOnSuccess
 import com.example.kotlinflow.app.ComparablePair
 import com.example.kotlinflow.data.database.EpisodeDao
 import com.example.kotlinflow.data.model.Episode
 import com.example.kotlinflow.data.model.Trilogy
 import com.example.kotlinflow.data.network.EpisodeRemoteDataSource
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -22,7 +27,8 @@ import timber.log.Timber
  */
 class EpisodeRepository(
     private val episodeDao: EpisodeDao,
-    private val remoteDataSource: EpisodeRemoteDataSource
+    private val remoteDataSource: EpisodeRemoteDataSource,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) {
 
     /**
@@ -57,19 +63,22 @@ class EpisodeRepository(
      * custom sort order to the list.
      *
      * Returns a LiveData-wrapped List of Episodes.
+     *
+     * This is similar to [episodes], but uses main-safe transforms to avoid blocking the main
+     * thread.
      */
-    fun getEpisodesWithTrilogy(trilogy: Trilogy): LiveData<List<Episode>> = liveData {
-        // Observe episodes from the database
-        val episodesTrilogyLiveData = episodeDao.getEpisodesWithTrilogyNumber(trilogy.number)
+    fun getEpisodesWithTrilogy(trilogy: Trilogy): LiveData<List<Episode>> =
+        episodeDao.getEpisodesWithTrilogyNumber(trilogy.number)
+            // "Switches" to a new LiveData every time a new value is received
+            .switchMap { episodeList ->
+                // Use the liveData builder to construct a new LiveData
+                liveData {
+                    val customSortOrder = episodesListSortOrderCache.getOrAwait()
 
-        // Fetch our custom sort from the network in a main-safe suspending call (cached)
-        val customSortOrder = episodesListSortOrderCache.getOrAwait()
-
-        // Map the LiveData, applying the sort criteria
-        emitSource(episodesTrilogyLiveData.map { episodeList ->
-            episodeList.applySort(customSortOrder)
-        })
-    }
+                    // The sorted list will be the new value sent to getEpisodesWithTrilogyNumber
+                    emit(episodeList.applyMainSafeSort(customSortOrder))
+                }
+            }
 
     /**
      * Update the episodes cache.
@@ -125,4 +134,14 @@ class EpisodeRepository(
             ComparablePair(positionForItem, episode.number)
         }
     }
+
+    /**
+     * The same sorting function as [applySort], but as a suspend function that can run on any
+     * thread (main-safe).
+     */
+    @AnyThread
+    private suspend fun List<Episode>.applyMainSafeSort(customSortOrder: List<String>): List<Episode> =
+        withContext(defaultDispatcher) {
+            this@applyMainSafeSort.applySort(customSortOrder)
+        }
 }
