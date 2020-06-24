@@ -13,6 +13,7 @@ import com.example.kotlinflow.data.model.Trilogy
 import com.example.kotlinflow.data.network.EpisodeRemoteDataSource
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -59,6 +60,12 @@ class EpisodeRepository(
     }
 
     /**
+     * This is a version of [episodes], but using [Flow].
+     */
+    val episodesFlow: Flow<List<Episode>>
+        get() = episodeDao.getEpisodesFlow()
+
+    /**
      * Fetch a list of [Episode]s from the database that matches a given [Trilogy] and apply a
      * custom sort order to the list.
      *
@@ -79,6 +86,13 @@ class EpisodeRepository(
                     emit(episodeList.applyMainSafeSort(customSortOrder))
                 }
             }
+
+    /**
+     * This is a version of [getEpisodesWithTrilogy], but using [Flow].
+     */
+    fun getEpisodesWithTrilogyFlow(trilogy: Trilogy): Flow<List<Episode>> {
+        return episodeDao.getEpisodesWithTrilogyNumberFlow(trilogy.number)
+    }
 
     /**
      * Update the episodes cache.

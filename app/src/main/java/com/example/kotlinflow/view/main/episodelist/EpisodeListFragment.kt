@@ -78,7 +78,7 @@ class EpisodeListFragment : Fragment() {
             }
         }
 
-        viewModel.episodes.observe(viewLifecycleOwner) { episodes ->
+        viewModel.episodesWithFlow.observe(viewLifecycleOwner) { episodes ->
             Timber.d("episodes: $episodes")
             episodeAdapter.submitList(episodes)
         }

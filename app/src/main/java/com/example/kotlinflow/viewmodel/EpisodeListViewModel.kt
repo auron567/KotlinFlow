@@ -40,6 +40,11 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
         }
     }
 
+    /**
+     * A list of episodes that updates based on the current filter (flow version).
+     */
+    val episodesWithFlow: LiveData<List<Episode>> = repository.episodesFlow.asLiveData()
+
     init {
         // When creating a new ViewModel, clear the trilogy and perform the related udpates
         clearTrilogyNumber()
