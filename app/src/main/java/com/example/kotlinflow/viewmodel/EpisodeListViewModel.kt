@@ -5,11 +5,13 @@ import com.example.kotlinflow.data.model.Episode
 import com.example.kotlinflow.data.model.Trilogy
 import com.example.kotlinflow.data.model.noTrilogy
 import com.example.kotlinflow.repository.EpisodeRepository
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.launch
 
 /**
  * The [ViewModel] for fetching a list of [Episode]s.
  */
+@FlowPreview
 class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewModel() {
 
     /**

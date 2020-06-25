@@ -11,10 +11,8 @@ import com.example.kotlinflow.data.database.EpisodeDao
 import com.example.kotlinflow.data.model.Episode
 import com.example.kotlinflow.data.model.Trilogy
 import com.example.kotlinflow.data.network.EpisodeRemoteDataSource
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import timber.log.Timber
 
 /**
@@ -26,6 +24,7 @@ import timber.log.Timber
  * To update the plants cache, call [tryUpdateRecentEpisodesCache] or
  * [tryUpdateRecentEpisodesForTrilogyCache].
  */
+@FlowPreview
 class EpisodeRepository(
     private val episodeDao: EpisodeDao,
     private val remoteDataSource: EpisodeRemoteDataSource,
@@ -40,6 +39,11 @@ class EpisodeRepository(
             Timber.d("fetch custom sort order")
             remoteDataSource.customEpisodeSortOrder()
         }
+
+    /**
+     * Create a flow that calls getOrAwait and emits the result as its first and only value.
+     */
+    private val customSortOrderFlow = episodesListSortOrderCache::getOrAwait.asFlow()
 
     /**
      * Fetch a list of [Episode]s from the database and apply a custom sort order to the list.
@@ -64,6 +68,15 @@ class EpisodeRepository(
      */
     val episodesFlow: Flow<List<Episode>>
         get() = episodeDao.getEpisodesFlow()
+            // When the result of customSortOrderFlow is available, this will combine it with the
+            // latest value from the flow above
+            .combine(customSortOrderFlow) { episodes, sortOrder ->
+                episodes.applySort(sortOrder)
+            }
+            // Switches the dispatcher the previous transforms run on
+            .flowOn(defaultDispatcher)
+            // Removes the buffer from flowOn and only shares the last value
+            .conflate()
 
     /**
      * Fetch a list of [Episode]s from the database that matches a given [Trilogy] and apply a

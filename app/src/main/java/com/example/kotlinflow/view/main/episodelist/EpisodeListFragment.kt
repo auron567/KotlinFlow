@@ -9,9 +9,11 @@ import com.example.kotlinflow.R
 import com.example.kotlinflow.databinding.FragmentEpisodeListBinding
 import com.example.kotlinflow.viewmodel.EpisodeListViewModel
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.FlowPreview
 import org.koin.android.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
+@FlowPreview
 class EpisodeListFragment : Fragment() {
 
     private lateinit var binding: FragmentEpisodeListBinding
