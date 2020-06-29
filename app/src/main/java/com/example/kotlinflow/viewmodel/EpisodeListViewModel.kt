@@ -5,12 +5,16 @@ import com.example.kotlinflow.data.model.Episode
 import com.example.kotlinflow.data.model.Trilogy
 import com.example.kotlinflow.data.model.noTrilogy
 import com.example.kotlinflow.repository.EpisodeRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
 /**
  * The [ViewModel] for fetching a list of [Episode]s.
  */
+@ExperimentalCoroutinesApi
 @FlowPreview
 class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewModel() {
 
@@ -32,6 +36,11 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
     private val trilogy = MutableLiveData<Trilogy>(noTrilogy)
 
     /**
+     * The current trilogy selection (flow version).
+     */
+    private val trilogyState = MutableStateFlow(noTrilogy)
+
+    /**
      * A list of episodes that updates based on the current filter.
      */
     val episodes: LiveData<List<Episode>> = trilogy.switchMap { trilogy ->
@@ -45,7 +54,13 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
     /**
      * A list of episodes that updates based on the current filter (flow version).
      */
-    val episodesWithFlow: LiveData<List<Episode>> = repository.episodesFlow.asLiveData()
+    val episodesWithFlow: LiveData<List<Episode>> = trilogyState.flatMapLatest { trilogy ->
+        if (trilogy == noTrilogy) {
+            repository.episodesFlow
+        } else {
+            repository.getEpisodesWithTrilogyFlow(trilogy)
+        }
+    }.asLiveData()
 
     init {
         // When creating a new ViewModel, clear the trilogy and perform the related udpates
@@ -56,7 +71,7 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
      * Clear the current filter.
      */
     fun clearTrilogyNumber() {
-        trilogy.value = noTrilogy
+        trilogyState.value = noTrilogy
         launchLoadData { repository.tryUpdateRecentEpisodesCache() }
     }
 
@@ -64,7 +79,7 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
      * Filter to this trilogy.
      */
     fun setTrilogyNumber(number: Int) {
-        trilogy.value = Trilogy(number)
+        trilogyState.value = Trilogy(number)
         launchLoadData { repository.tryUpdateRecentEpisodesCache() }
     }
 
