@@ -102,9 +102,22 @@ class EpisodeRepository(
 
     /**
      * This is a version of [getEpisodesWithTrilogy], but using [Flow].
+     *
+     * It differs from [episodesFlow] in that it only calls main-safe suspend functions, so it does
+     * not need to use [flowOn].
      */
     fun getEpisodesWithTrilogyFlow(trilogy: Trilogy): Flow<List<Episode>> {
         return episodeDao.getEpisodesWithTrilogyNumberFlow(trilogy.number)
+            // When a new value is sent from the database, we can transform it using a suspending
+            // map function
+            .map { episodeList ->
+                // This may trigger a network request if it's not yet cached, but since the network
+                // call is main safe, we won't block the main thread
+                val customSortOrder = episodesListSortOrderCache.getOrAwait()
+
+                // This call is also main-safe due to using applyMainSafeSort
+                episodeList.applyMainSafeSort(customSortOrder)
+            }
     }
 
     /**
