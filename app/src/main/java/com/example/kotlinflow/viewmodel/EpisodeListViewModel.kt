@@ -7,9 +7,7 @@ import com.example.kotlinflow.data.model.noTrilogy
 import com.example.kotlinflow.repository.EpisodeRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.*
 
 /**
  * The [ViewModel] for fetching a list of [Episode]s.
@@ -65,6 +63,15 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
     init {
         // When creating a new ViewModel, clear the trilogy and perform the related udpates
         clearTrilogyNumber()
+
+        // Updating the trilogy will automatically kick off a network request
+        loadDataFor(trilogyState) { trilogy ->
+            if (trilogy == noTrilogy) {
+                repository.tryUpdateRecentEpisodesCache()
+            } else {
+                repository.tryUpdateRecentEpisodesForTrilogyCache(trilogy)
+            }
+        }
     }
 
     /**
@@ -72,7 +79,6 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
      */
     fun clearTrilogyNumber() {
         trilogyState.value = noTrilogy
-        launchLoadData { repository.tryUpdateRecentEpisodesCache() }
     }
 
     /**
@@ -80,7 +86,6 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
      */
     fun setTrilogyNumber(number: Int) {
         trilogyState.value = Trilogy(number)
-        launchLoadData { repository.tryUpdateRecentEpisodesCache() }
     }
 
     /**
@@ -96,16 +101,15 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
      *
      * By marking [block] as suspend this creates a lambda which can call suspend functions.
      */
-    private fun launchLoadData(block: suspend () -> Unit) {
-        viewModelScope.launch {
-            try {
+    private fun <T> loadDataFor(source: StateFlow<T>, block: suspend (T) -> Unit) {
+        source
+            .mapLatest {
                 _progressBar.value = true
-                block()
-            } catch (error: Throwable) {
-                _snackbar.value = error.message
-            } finally {
-                _progressBar.value = false
+                block(it)
             }
-        }
+            .onEach { _progressBar.value = false }
+            .onCompletion { _progressBar.value = false }
+            .catch { throwable -> _snackbar.value = throwable.message }
+            .launchIn(viewModelScope)
     }
 }
