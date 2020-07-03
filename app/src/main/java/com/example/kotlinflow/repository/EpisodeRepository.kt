@@ -1,10 +1,6 @@
 package com.example.kotlinflow.repository
 
 import androidx.annotation.AnyThread
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.liveData
-import androidx.lifecycle.map
-import androidx.lifecycle.switchMap
 import com.example.kotlinflow.app.CacheOnSuccess
 import com.example.kotlinflow.app.ComparablePair
 import com.example.kotlinflow.data.database.EpisodeDao
@@ -18,10 +14,10 @@ import timber.log.Timber
 /**
  * Repository module for handling data operations.
  *
- * This EpisodeRepository exposes two UI-observable database queries [episodes] and
- * [getEpisodesWithTrilogy].
+ * This EpisodeRepository exposes two UI-observable database queries [episodesFlow] and
+ * [getEpisodesWithTrilogyFlow].
  *
- * To update the plants cache, call [tryUpdateRecentEpisodesCache] or
+ * To update the episodes cache, call [tryUpdateRecentEpisodesCache] or
  * [tryUpdateRecentEpisodesForTrilogyCache].
  */
 @FlowPreview
@@ -48,23 +44,7 @@ class EpisodeRepository(
     /**
      * Fetch a list of [Episode]s from the database and apply a custom sort order to the list.
      *
-     * Returns a LiveData-wrapped List of Episodes.
-     */
-    val episodes: LiveData<List<Episode>> = liveData {
-        // Observe episodes from the database
-        val episodesLiveData = episodeDao.getEpisodes()
-
-        // Fetch our custom sort from the network in a main-safe suspending call (cached)
-        val customSortOrder = episodesListSortOrderCache.getOrAwait()
-
-        // Map the LiveData, applying the sort criteria
-        emitSource(episodesLiveData.map { episodeList ->
-            episodeList.applySort(customSortOrder)
-        })
-    }
-
-    /**
-     * This is a version of [episodes], but using [Flow].
+     * Returns a Flow-wrapped List of Episodes.
      */
     val episodesFlow: Flow<List<Episode>>
         get() = episodeDao.getEpisodesFlow()
@@ -82,26 +62,7 @@ class EpisodeRepository(
      * Fetch a list of [Episode]s from the database that matches a given [Trilogy] and apply a
      * custom sort order to the list.
      *
-     * Returns a LiveData-wrapped List of Episodes.
-     *
-     * This is similar to [episodes], but uses main-safe transforms to avoid blocking the main
-     * thread.
-     */
-    fun getEpisodesWithTrilogy(trilogy: Trilogy): LiveData<List<Episode>> =
-        episodeDao.getEpisodesWithTrilogyNumber(trilogy.number)
-            // "Switches" to a new LiveData every time a new value is received
-            .switchMap { episodeList ->
-                // Use the liveData builder to construct a new LiveData
-                liveData {
-                    val customSortOrder = episodesListSortOrderCache.getOrAwait()
-
-                    // The sorted list will be the new value sent to getEpisodesWithTrilogyNumber
-                    emit(episodeList.applyMainSafeSort(customSortOrder))
-                }
-            }
-
-    /**
-     * This is a version of [getEpisodesWithTrilogy], but using [Flow].
+     * Returns a Flow-wrapped List of Episodes.
      *
      * It differs from [episodesFlow] in that it only calls main-safe suspend functions, so it does
      * not need to use [flowOn].

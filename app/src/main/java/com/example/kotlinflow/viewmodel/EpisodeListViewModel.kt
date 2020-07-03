@@ -31,26 +31,10 @@ class EpisodeListViewModel(private val repository: EpisodeRepository) : ViewMode
     /**
      * The current trilogy selection.
      */
-    private val trilogy = MutableLiveData<Trilogy>(noTrilogy)
-
-    /**
-     * The current trilogy selection (flow version).
-     */
     private val trilogyState = MutableStateFlow(noTrilogy)
 
     /**
      * A list of episodes that updates based on the current filter.
-     */
-    val episodes: LiveData<List<Episode>> = trilogy.switchMap { trilogy ->
-        if (trilogy == noTrilogy) {
-            repository.episodes
-        } else {
-            repository.getEpisodesWithTrilogy(trilogy)
-        }
-    }
-
-    /**
-     * A list of episodes that updates based on the current filter (flow version).
      */
     val episodesWithFlow: LiveData<List<Episode>> = trilogyState.flatMapLatest { trilogy ->
         if (trilogy == noTrilogy) {

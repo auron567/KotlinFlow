@@ -1,3 +1,5 @@
+@file:Suppress("EXPERIMENTAL_API_USAGE")
+
 package com.example.kotlinflow.di
 
 import com.example.kotlinflow.data.database.EpisodeDao
